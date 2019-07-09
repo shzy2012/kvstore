@@ -42,10 +42,15 @@ func (k *KVStore) Put(key, value string) {
 }
 
 //Get 根据K获取V
-func (k *KVStore) Get(key string) string {
+func (k *KVStore) Get(key string) (string, error) {
 	var result string
+	
 	err := k.db.View(func(txn *badger.Txn) error {
-		item, _ := txn.Get([]byte("key"))
+		item, err := txn.Get([]byte(key))
+		if err != nil {
+			return err
+		}
+
 		item.Value(func(val []byte) error {
 			result = string(val)
 			return nil
@@ -53,10 +58,5 @@ func (k *KVStore) Get(key string) string {
 
 		return nil
 	})
-
-	if err != nil {
-		log.Printf("%s\n", err)
-	}
-
-	return result
+	return result, err
 }
